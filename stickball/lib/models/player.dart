@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickball/utils.dart';
 
 class MyPlayer extends StatefulWidget {
   @override
@@ -11,7 +12,11 @@ class _MyPlayerState extends State<MyPlayer> {
   void _movePlayer() {
     print('Current position: $_position');
     setState(() {
-      _position += const Offset(10, 10);
+      _position += Offset(
+        0.2*percentageOfWidth(context, 1), // Move by 1% of the screen width
+        1.8*percentageOfHeight(context, 1), // Move by 1% of the screen height
+      );
+      print('Changed by height: ${percentageOfHeight(context, 1)}');
       print('New position: $_position');
     });
     print('State updated');
@@ -31,8 +36,8 @@ class _MyPlayerState extends State<MyPlayer> {
             left: _position.dx,
             top: _position.dy,
             child: Container(
-              width: 50,
-              height: 50,
+              width: percentageOfWidth(context, 5),
+              height: percentageOfHeight(context, 5), 
               color: Colors.blue,
             ),
           ),
