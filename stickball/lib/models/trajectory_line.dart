@@ -54,13 +54,20 @@ class TrajectoryLine {
     return points.isNotEmpty ? points.last : null;
   }
 
-  void draw(Canvas canvas, Paint linePaint, Paint circlePaint) {
+  void draw(Canvas canvas) {
     if (points.isEmpty || dragStart == null || dragEnd == null) return;
     
     // Draw the line from player to drag end point
+    final linePaint = Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
     canvas.drawLine(dragStart!, dragEnd!, linePaint);
     
     // Draw circles for trajectory points
+    final circlePaint = Paint()
+      ..color = Colors.yellow
+      ..style = PaintingStyle.fill;
     for (var point in points) {
       canvas.drawCircle(point, 5, circlePaint);
     }

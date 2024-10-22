@@ -67,23 +67,7 @@ class GamePainter extends CustomPainter {
       canvas.drawCircle(gameState.position!, gameState.width! / 2, playerPaint);
 
       // Draw trajectory
-      if (gameState.trajectoryLine != null) {
-        // Draw green line
-        final linePaint = Paint()
-          ..color = Colors.green
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2;
-        
-        // Draw yellow dots
-        final dotPaint = Paint()
-          ..color = Colors.yellow
-          ..style = PaintingStyle.fill;
-
-        // Draw the yellow dots
-        for (var point in gameState.trajectoryLine!.points) {
-          canvas.drawCircle(point, 5, dotPaint);
-        }
-      }
+      gameState.trajectoryLine?.draw(canvas);
     }
   }
 

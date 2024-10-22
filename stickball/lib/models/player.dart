@@ -74,13 +74,8 @@ class TrajectoryPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 2;
-    final circlePaint = Paint()
-      ..color = Colors.yellow;
 
-    trajectoryLine.draw(canvas, linePaint, circlePaint);
+    trajectoryLine.draw(canvas);
   }
 
   @override
