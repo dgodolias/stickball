@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stickball/game_state.dart';
+import 'package:stickball/utils.dart';
 
 void main() {
   runApp(
@@ -27,6 +28,7 @@ class GameScreen extends StatelessWidget {
 
     if (gameState.position == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        setScreenDimensions(context); // Call the function to set screen dimensions
         gameState.initializeGame(context);
       });
     }
@@ -43,15 +45,9 @@ class PlayScreen extends StatelessWidget {
     final gameState = Provider.of<GameState>(context);
 
     return GestureDetector(
-      onPanStart: (details) {
-        gameState.startDrag(details.localPosition);
-      },
-      onPanUpdate: (details) {
-        gameState.updateDrag(details.localPosition);
-      },
-      onPanEnd: (_) {
-        gameState.endDrag();
-      },
+      onPanStart: (details) => gameState.startDrag(details.localPosition),
+      onPanUpdate: (details) => gameState.updateDrag(details.localPosition),
+      onPanEnd: (_) => gameState.endDrag(),
       child: CustomPaint(
         painter: GamePainter(gameState),
         child: Container(),
@@ -88,7 +84,7 @@ class GameOverScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          const Text(
             'Game Over',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),

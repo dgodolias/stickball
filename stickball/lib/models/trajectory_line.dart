@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stickball/utils.dart';
 
 class TrajectoryLine {
   List<Offset> points = [];
@@ -78,7 +79,7 @@ class TrajectoryLine {
       ..color = Colors.yellow
       ..style = PaintingStyle.fill;
     for (var point in points) {
-      canvas.drawCircle(point, 5, circlePaint);
+      canvas.drawCircle(point, SCRNheight * 0.01, circlePaint);
     }
   }
 

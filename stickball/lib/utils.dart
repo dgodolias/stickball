@@ -1,14 +1,17 @@
 // utils.dart
 import 'package:flutter/material.dart';
 
-void printScreenDimensions(BuildContext context) {
+late final double SCRNwidth;
+  late final double SCRNheight;
+
+void setScreenDimensions(BuildContext context) {
   final Size size = MediaQuery.sizeOf(context);
-  final double width = size.width;
-  final double height = size.height;
+  SCRNwidth = size.width;
+  SCRNheight = size.height;
 
   // Print the dimensions
-  print('Screen width: $width');
-  print('Screen height: $height');
+  print('Screen width: $SCRNwidth');
+  print('Screen height: $SCRNheight');
 }
 
 double percentageOfWidth(BuildContext context, double percentage) {
