@@ -42,6 +42,7 @@ class GameState extends ChangeNotifier {
     Offset? endPoint = trajectoryLine?.getEndPoint();
     if (endPoint != null) {
       _position = endPoint;
+      trajectoryLine?.updatePlayerPosition(_position!);
       if (_isOutOfBounds()) {
         isGameOver = true;
       }
@@ -51,9 +52,9 @@ class GameState extends ChangeNotifier {
   bool _isOutOfBounds() {
     if (_position == null || screenSize == null) return false;
     return _position!.dx < 0 ||
-           _position!.dx > screenSize!.width - width! ||
-           _position!.dy < 0 ||
-           _position!.dy > screenSize!.height - height!;
+        _position!.dx > screenSize!.width - width! ||
+        _position!.dy < 0 ||
+        _position!.dy > screenSize!.height - height!;
   }
 
   Offset? get position => _position;

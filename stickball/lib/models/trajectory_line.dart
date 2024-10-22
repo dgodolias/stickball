@@ -3,42 +3,40 @@ import 'package:flutter/material.dart';
 
 class TrajectoryLine {
   List<Offset> points = [];
-  Offset? startPoint;
-  Offset? endPoint;
+  Offset? dragStart;
+  Offset? dragEnd;
   Offset playerPosition;
   Size screenSize;
 
   TrajectoryLine({required this.playerPosition, required this.screenSize});
 
   void startDrag(Offset position) {
-    startPoint = playerPosition; // Start from the player's center
-    endPoint = null;
+    dragStart = playerPosition;
+    dragEnd = null;
     points.clear();
   }
 
   void updateDrag(Offset position) {
-    endPoint = position;
+    dragEnd = position;
     calculateTrajectory();
   }
 
   void endDrag() {
-    startPoint = null;
-    endPoint = null;
+    dragStart = null;
+    dragEnd = null;
     points.clear();
   }
 
   void calculateTrajectory() {
-    if (startPoint == null || endPoint == null) return;
+    if (dragStart == null || dragEnd == null) return;
 
     // Calculate the drag vector
-    Offset dragVector = endPoint! - startPoint!;
+    Offset dragVector = dragEnd! - dragStart!;
     
-    // Reverse the direction
-    Offset reversedVector = -dragVector;
-    
-    // Normalize the reversed vector
-    double dragLength = reversedVector.distance;
-    Offset normalizedDrag = Offset(reversedVector.dx / dragLength, reversedVector.dy / dragLength);
+    // Reverse the direction and normalize
+    double dragLength = dragVector.distance;
+    if (dragLength == 0) return; // Prevent division by zero
+    Offset normalizedDrag = Offset(-dragVector.dx / dragLength, -dragVector.dy / dragLength);
     
     // Calculate the total trajectory length (you can adjust this factor)
     double trajectoryLength = dragLength * 1.5;
@@ -57,14 +55,21 @@ class TrajectoryLine {
   }
 
   void draw(Canvas canvas, Paint linePaint, Paint circlePaint) {
-    if (points.isEmpty) return;
+    if (points.isEmpty || dragStart == null || dragEnd == null) return;
     
-    // Draw the green line from player to drag end point
-    canvas.drawLine(playerPosition, endPoint!, linePaint);
+    // Draw the line from player to drag end point
+    canvas.drawLine(dragStart!, dragEnd!, linePaint);
     
-    // Draw yellow circles for trajectory points
+    // Draw circles for trajectory points
     for (var point in points) {
       canvas.drawCircle(point, 5, circlePaint);
+    }
+  }
+
+  void updatePlayerPosition(Offset newPosition) {
+    playerPosition = newPosition;
+    if (dragEnd != null) {
+      calculateTrajectory();
     }
   }
 }

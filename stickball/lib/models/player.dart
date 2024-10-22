@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stickball/utils.dart';
+import 'package:stickball/models/trajectory_line.dart';
+
 
 class MyPlayer extends StatefulWidget {
   @override
@@ -10,6 +12,7 @@ class _MyPlayerState extends State<MyPlayer> {
   Offset? _position;
   double? width;
   double? height;
+  late TrajectoryLine trajectoryLine;
 
   @override
   void initState() {
@@ -18,51 +21,68 @@ class _MyPlayerState extends State<MyPlayer> {
       setState(() {
         width = percentageOfWidth(context, 5);
         height = percentageOfHeight(context, 5);
-        print('Width: $width');
-        print('Height: $height');
         _position = getCenterPosition(context, width!, height!);
-        print('Initial position: $_position');
+        trajectoryLine = TrajectoryLine(
+          playerPosition: _position!,
+          screenSize: MediaQuery.of(context).size,
+        );
       });
     });
   }
 
   void _movePlayer() {
     if (_position == null) return;
-    print('Current position: $_position');
     setState(() {
-      _position = moveByPercentage(context, _position!, 0.2, 1.8, width!,
-          height!); // Move by 0.2% width and 1.8% height
-      print('Changed by height: ${percentageOfHeight(context, 1)}');
-      print('New position: $_position');
+      _position = moveByPercentage(context, _position!, 0.2, 1.8, width!, height!);
+      trajectoryLine.updatePlayerPosition(_position!);
     });
-    print('State updated');
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        print('Container tapped');
-        _movePlayer();
-      },
-      child: Stack(
-        children: [
-          if (_position != null)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              left: _position!.dx,
-              top: _position!.dy,
-              child: Container(
-                width: width,
-                height: height,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
+      onTap: _movePlayer,
+      child: CustomPaint(
+        painter: TrajectoryPainter(trajectoryLine),
+        child: Stack(
+          children: [
+            if (_position != null)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                left: _position!.dx,
+                top: _position!.dy,
+                child: Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class TrajectoryPainter extends CustomPainter {
+  final TrajectoryLine trajectoryLine;
+
+  TrajectoryPainter(this.trajectoryLine);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = 2;
+    final circlePaint = Paint()
+      ..color = Colors.yellow;
+
+    trajectoryLine.draw(canvas, linePaint, circlePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
