@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:stickball/utils.dart';
+import 'package:stickball/models/player.dart';
 
 class TrajectoryLine {
   List<Offset> points = [];
   Offset? touchStartPoint;      // The position where the touch started
   Offset? currentTouchPoint;    // The current touch position
-  Offset playerPosition;
+  Player player;
   Size screenSize;
 
   Offset? greenLineEndPoint;    // Endpoint of the green line
 
-  TrajectoryLine({required this.playerPosition, required this.screenSize});
+  TrajectoryLine({required this.player, required this.screenSize});
 
   void startDrag(Offset position) {
     touchStartPoint = position;
@@ -37,7 +37,7 @@ class TrajectoryLine {
     Offset delta = currentTouchPoint! - touchStartPoint!;
 
     // The green line shows the drag movement
-    greenLineEndPoint = playerPosition + delta;
+    greenLineEndPoint = player.position + delta;
 
     // For the trajectory, reverse the delta to predict movement in the opposite direction
     Offset reversedDelta = -delta;
@@ -46,14 +46,14 @@ class TrajectoryLine {
     double scalingFactor = 1.0; // Adjust as needed (e.g., 1.5 for faster movement)
 
     // Calculate the trajectory endpoint (yellow dots)
-    Offset trajectoryEndPoint = playerPosition + reversedDelta * scalingFactor;
+    Offset trajectoryEndPoint = player.position + reversedDelta * scalingFactor;
 
     // Generate points along the trajectory from player's position to trajectory endpoint
     int numPoints = 10;
     points.clear();
     for (int i = 0; i < numPoints; i++) {
       double t = i / (numPoints - 1); // Value from 0 to 1
-      Offset point = Offset.lerp(playerPosition, trajectoryEndPoint, t)!;
+      Offset point = Offset.lerp(player.position, trajectoryEndPoint, t)!;
       points.add(point);
     }
   }
@@ -71,7 +71,7 @@ class TrajectoryLine {
         ..color = Colors.green
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
-      canvas.drawLine(playerPosition, greenLineEndPoint!, linePaint);
+      canvas.drawLine(player.position, greenLineEndPoint!, linePaint);
     }
 
     // Draw yellow circles for trajectory points (mirrored direction)
@@ -79,12 +79,12 @@ class TrajectoryLine {
       ..color = Colors.yellow
       ..style = PaintingStyle.fill;
     for (var point in points) {
-      canvas.drawCircle(point, SCRNheight * 0.01, circlePaint);
+      canvas.drawCircle(point, screenSize.height * 0.01, circlePaint);
     }
   }
 
   void updatePlayerPosition(Offset newPosition) {
-    playerPosition = newPosition;
+    player.position = newPosition;
     if (touchStartPoint != null && currentTouchPoint != null) {
       calculateTrajectory();
     }

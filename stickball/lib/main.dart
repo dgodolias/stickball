@@ -26,7 +26,7 @@ class GameScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameState>(context);
 
-    if (gameState.position == null) {
+    if (gameState.player?.position == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setScreenDimensions(context); // Call the function to set screen dimensions
         gameState.initializeGame(context);
@@ -63,10 +63,8 @@ class GamePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (gameState.position != null) {
-      // Draw player
-      final playerPaint = Paint()..color = Colors.blue;
-      canvas.drawCircle(gameState.position!, gameState.width! / 2, playerPaint);
+    if (gameState.player != null) {
+      gameState.player!.draw(canvas);
 
       // Draw trajectory
       gameState.trajectoryLine?.draw(canvas);

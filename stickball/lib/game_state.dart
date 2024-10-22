@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:stickball/utils.dart';
 import 'package:stickball/models/trajectory_line.dart';
+import 'package:stickball/models/player.dart';
 
 class GameState extends ChangeNotifier {
-  Offset? _position;
-  double? width;
-  double? height;
+  Player? player;
   bool isGameOver = false;
   TrajectoryLine? trajectoryLine;
   Size? screenSize;
 
   void initializeGame(BuildContext context) {
     screenSize = MediaQuery.of(context).size;
-    width = percentageOfWidth(context, 5);
-    height = percentageOfHeight(context, 5);
-    _position = getCenterPosition(context, width!, height!);
+
+    double width = percentageOfWidth(context, 5);
+    double height = percentageOfHeight(context, 5);
+    Offset position = getCenterPosition(context, width, height);
+
+    player = Player(position: position, width: width, height: height);
     isGameOver = false;
-    trajectoryLine = TrajectoryLine(playerPosition: _position!, screenSize: screenSize!);
+    trajectoryLine = TrajectoryLine(player: player!, screenSize: screenSize!);
+
     notifyListeners();
   }
 
@@ -40,9 +43,9 @@ class GameState extends ChangeNotifier {
 
   void movePlayerAlongTrajectory() {
     Offset? endPoint = trajectoryLine?.getEndPoint();
-    if (endPoint != null) {
-      _position = endPoint;
-      trajectoryLine?.updatePlayerPosition(_position!);
+    if (endPoint != null && player != null) {
+      player!.position = endPoint;
+      trajectoryLine?.updatePlayerPosition(player!.position);
       if (_isOutOfBounds()) {
         isGameOver = true;
       }
@@ -50,12 +53,10 @@ class GameState extends ChangeNotifier {
   }
 
   bool _isOutOfBounds() {
-    if (_position == null || screenSize == null) return false;
-    return _position!.dx < 0 ||
-        _position!.dx > screenSize!.width - width! ||
-        _position!.dy < 0 ||
-        _position!.dy > screenSize!.height - height!;
+    if (player == null || screenSize == null) return false;
+    return player!.position.dx < 0 ||
+        player!.position.dx > screenSize!.width - player!.width ||
+        player!.position.dy < 0 ||
+        player!.position.dy > screenSize!.height - player!.height;
   }
-
-  Offset? get position => _position;
 }
