@@ -43,9 +43,15 @@ class PlayScreen extends StatelessWidget {
     final gameState = Provider.of<GameState>(context);
 
     return GestureDetector(
-      onPanStart: (details) => gameState.startDrag(details.localPosition),
-      onPanUpdate: (details) => gameState.updateDrag(details.localPosition),
-      onPanEnd: (_) => gameState.endDrag(),
+      onPanStart: (details) {
+        gameState.startDrag(details.localPosition);
+      },
+      onPanUpdate: (details) {
+        gameState.updateDrag(details.localPosition);
+      },
+      onPanEnd: (_) {
+        gameState.endDrag();
+      },
       child: CustomPaint(
         painter: GamePainter(gameState),
         child: Container(),
