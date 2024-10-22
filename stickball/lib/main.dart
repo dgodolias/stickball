@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stickball/game_state.dart';
-import 'package:stickball/utils.dart';
 
 void main() {
   runApp(
@@ -44,27 +43,57 @@ class PlayScreen extends StatelessWidget {
     final gameState = Provider.of<GameState>(context);
 
     return GestureDetector(
-      onTap: () => gameState.movePlayer(context),
-      child: Stack(
-        children: [
-          if (gameState.position != null)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              left: gameState.position!.dx,
-              top: gameState.position!.dy,
-              child: Container(
-                width: gameState.width,
-                height: gameState.height,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-        ],
+      onPanStart: (details) => gameState.startDrag(details.localPosition),
+      onPanUpdate: (details) => gameState.updateDrag(details.localPosition),
+      onPanEnd: (_) => gameState.endDrag(),
+      child: CustomPaint(
+        painter: GamePainter(gameState),
+        child: Container(),
       ),
     );
   }
+}
+
+class GamePainter extends CustomPainter {
+  final GameState gameState;
+
+  GamePainter(this.gameState);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (gameState.position != null) {
+      // Draw player
+      final playerPaint = Paint()..color = Colors.blue;
+      canvas.drawCircle(gameState.position!, gameState.width! / 2, playerPaint);
+
+      // Draw trajectory
+      if (gameState.trajectoryLine != null) {
+        // Draw green line
+        final linePaint = Paint()
+          ..color = Colors.green
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2;
+        
+        // Draw yellow dots
+        final dotPaint = Paint()
+          ..color = Colors.yellow
+          ..style = PaintingStyle.fill;
+
+        // Draw the green line
+        if (gameState.trajectoryLine!.startPoint != null && gameState.trajectoryLine!.endPoint != null) {
+          canvas.drawLine(gameState.trajectoryLine!.startPoint!, gameState.trajectoryLine!.endPoint!, linePaint);
+        }
+
+        // Draw the yellow dots
+        for (var point in gameState.trajectoryLine!.points) {
+          canvas.drawCircle(point, 5, dotPaint);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 class GameOverScreen extends StatelessWidget {
