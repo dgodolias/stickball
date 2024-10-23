@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:stickball/utils.dart';
 import 'package:stickball/models/trajectory_line.dart';
 import 'package:stickball/models/player.dart';
+import 'package:stickball/models/wall.dart';
 
 class GameState extends ChangeNotifier {
   Player? player;
   bool isGameOver = false;
   TrajectoryLine? trajectoryLine;
   Size? screenSize;
+  Wall? leftWall;
+  Wall? rightWall;
 
   void initializeGame(BuildContext context) {
     screenSize = MediaQuery.of(context).size;
@@ -20,6 +23,10 @@ class GameState extends ChangeNotifier {
     player = Player(position: position, width: width, height: height);
     isGameOver = false;
     trajectoryLine = TrajectoryLine(player: player!, screenSize: screenSize!);
+
+    // Initialize walls
+    leftWall = Wall(position: Offset(0, 0), width: screenSize!.width * 0.1, height: screenSize!.height);
+    rightWall = Wall(position: Offset(screenSize!.width - screenSize!.width * 0.1, 0), width: screenSize!.width * 0.1, height: screenSize!.height);
 
     notifyListeners();
   }
@@ -45,12 +52,27 @@ class GameState extends ChangeNotifier {
   void movePlayerAlongTrajectory() {
     Offset? endPoint = trajectoryLine?.getEndPoint();
     if (endPoint != null && player != null) {
+      // Check for collision with walls
+      if (_isCollidingWithWall(endPoint)) {
+        // Stick to the wall
+        if (endPoint.dx < leftWall!.position.dx + leftWall!.width) {
+          endPoint = Offset(leftWall!.position.dx + leftWall!.width + player!.width/2, endPoint.dy);
+        } else if (endPoint.dx > rightWall!.position.dx) {
+          endPoint = Offset(rightWall!.position.dx - player!.width/2, endPoint.dy);
+        }
+      }
+
       player!.position = endPoint;
       trajectoryLine?.updatePlayerPosition(player!.position);
       if (_isOutOfBounds()) {
         isGameOver = true;
       }
     }
+  }
+
+  bool _isCollidingWithWall(Offset endPoint) {
+    return (endPoint.dx < leftWall!.position.dx + leftWall!.width ||
+            endPoint.dx > rightWall!.position.dx);
   }
 
   bool _isOutOfBounds() {
@@ -121,9 +143,11 @@ class GamePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (gameState.player != null) {
       gameState.player!.draw(canvas);
-
-      // Draw trajectory
       gameState.trajectoryLine?.draw(canvas);
+      
+      // Draw walls
+      gameState.leftWall?.draw(canvas);
+      gameState.rightWall?.draw(canvas);
     }
   }
 
