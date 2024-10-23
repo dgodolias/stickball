@@ -34,6 +34,10 @@ class TrajectoryLine {
   void calculateTrajectory() {
     if (touchStartPoint == null || currentTouchPoint == null) return;
 
+        // Log player position and touch point
+    print('TRAJECTORY:Player Position: dx=${player.position.dx}, dy=${player.position.dy}');
+    print('TRAJECTORY:Touch Point: dx=${currentTouchPoint!.dx}, dy=${currentTouchPoint!.dy}');
+    
     // Calculate the angle (theta)
     double theta = starting_trajectory_angle(
       player.position.dx,
@@ -41,7 +45,8 @@ class TrajectoryLine {
       currentTouchPoint!.dx,
       currentTouchPoint!.dy,
     );
-
+    print('TRAJECTORY:Theta: $theta');
+    
     // Calculate the initial velocity (v)
     double v = createVelocity(
       player.position.dx,
@@ -49,6 +54,7 @@ class TrajectoryLine {
       currentTouchPoint!.dx,
       currentTouchPoint!.dy,
     );
+    print('TRAJECTORY:Initial Velocity (v): $v');
 
     // Generate points along the trajectory
     int numPoints = 10;
@@ -93,8 +99,5 @@ class TrajectoryLine {
 
   void updatePlayerPosition(Offset newPosition) {
     player.position = newPosition;
-    if (touchStartPoint != null && currentTouchPoint != null) {
-      calculateTrajectory();
-    }
   }
 }
