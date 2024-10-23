@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stickball/models/player.dart';
+import 'package:stickball/utils.dart';
 
 class TrajectoryLine {
   List<Offset> points = [];
@@ -33,29 +34,36 @@ class TrajectoryLine {
   void calculateTrajectory() {
     if (touchStartPoint == null || currentTouchPoint == null) return;
 
-    // Calculate the movement vector (delta)
-    Offset delta = currentTouchPoint! - touchStartPoint!;
+    // Calculate the angle (theta)
+    double theta = starting_trajectory_angle(
+      player.position.dx,
+      player.position.dy,
+      currentTouchPoint!.dx,
+      currentTouchPoint!.dy,
+    );
 
-    // The green line shows the drag movement
-    greenLineEndPoint = player.position + delta;
+    // Calculate the initial velocity (v)
+    double v = createVelocity(
+      player.position.dx,
+      player.position.dy,
+      currentTouchPoint!.dx,
+      currentTouchPoint!.dy,
+    );
 
-    // For the trajectory, reverse the delta to predict movement in the opposite direction
-    Offset reversedDelta = -delta;
-
-    // Optionally, apply a scaling factor to adjust the speed
-    double scalingFactor = 1.0; // Adjust as needed (e.g., 1.5 for faster movement)
-
-    // Calculate the trajectory endpoint (yellow dots)
-    Offset trajectoryEndPoint = player.position + reversedDelta * scalingFactor;
-
-    // Generate points along the trajectory from player's position to trajectory endpoint
+    // Generate points along the trajectory
     int numPoints = 10;
     points.clear();
     for (int i = 0; i < numPoints; i++) {
-      double t = i / (numPoints - 1); // Value from 0 to 1
-      Offset point = Offset.lerp(player.position, trajectoryEndPoint, t)!;
-      points.add(point);
+      double t = i / (numPoints - 1);
+      double x = player.position.dx +
+          StartingVelocityX(v, theta) * t * (numPoints - 1); // Adjust time step as needed
+      double y = player.position.dy -
+          createTrajectoryFunc(theta, v, x, player.position.dx, player.position.dy, 0, 0);
+      points.add(Offset(x, y));
     }
+
+    // Set the green line end point
+    greenLineEndPoint = currentTouchPoint;
   }
 
   Offset? getEndPoint() {

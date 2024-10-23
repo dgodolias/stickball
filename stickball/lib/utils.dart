@@ -1,8 +1,8 @@
-// utils.dart
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 late final double SCRNwidth;
-  late final double SCRNheight;
+late final double SCRNheight;
 
 void setScreenDimensions(BuildContext context) {
   final Size size = MediaQuery.sizeOf(context);
@@ -42,4 +42,34 @@ Offset moveByPercentage(BuildContext context, Offset currentPosition, double wid
     newPosition.dx - playerWidth / 2,
     newPosition.dy - playerHeight / 2,
   );
+}
+
+// Helper functions from your .h files
+double createTrajectoryFunc(double theta, double v, double x_new, double x_start,
+    double y_start, double ya, double yb) {
+  double x = x_new - x_start;
+  double y = (tan(theta) * x - (9.81 / (2 * pow(v, 2) * pow(cos(theta), 2))) * pow(x, 2));
+  return y;
+}
+
+double createVelocity(double xa, double ya, double xb, double yb) {
+  if (ya == yb) {
+    if (xa > xb) return pow(pow(xa - xb, 2) + pow(ya - yb, 2), 0.5) / 2;
+    if (xa < xb) return -pow(pow(xa - xb, 2) + pow(ya - yb, 2), 0.5) / 2;
+    if (xa == xb) return 0;
+  }
+  if (ya > yb) return -pow(pow(xa - xb, 2) + pow(ya - yb, 2), 0.5) / 2;
+  return pow(pow(xa - xb, 2) + pow(ya - yb, 2), 0.5) / 2;
+}
+
+double starting_trajectory_angle(double xa, double ya, double xb, double yb) {
+  if (xa == xb) return 1.57078;
+  return atan((ya - yb) / (xb - xa));
+}
+
+double StartingVelocityX(double v, double theta) {
+  if (theta < 0) {
+    return -v * cos(theta);
+  }
+  return v * cos(theta);
 }

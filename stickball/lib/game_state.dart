@@ -50,25 +50,38 @@ class GameState extends ChangeNotifier {
   }
 
   void movePlayerAlongTrajectory() {
-    Offset? endPoint = trajectoryLine?.getEndPoint();
-    if (endPoint != null && player != null) {
-      // Check for collision with walls
-      if (_isCollidingWithWall(endPoint)) {
-        // Stick to the wall
-        if (endPoint.dx < leftWall!.position.dx + leftWall!.width) {
-          endPoint = Offset(leftWall!.position.dx + leftWall!.width + player!.width/2, endPoint.dy);
-        } else if (endPoint.dx > rightWall!.position.dx) {
-          endPoint = Offset(rightWall!.position.dx - player!.width/2, endPoint.dy);
-        }
-      }
+  if (trajectoryLine?.points.isNotEmpty ?? false) {
+    // Move to the next point in the trajectory
+    Offset nextPoint = trajectoryLine!.points.removeAt(0);
 
-      player!.position = endPoint;
-      trajectoryLine?.updatePlayerPosition(player!.position);
-      if (_isOutOfBounds()) {
-        isGameOver = true;
+    // Check for collision with walls
+    if (_isCollidingWithWall(nextPoint)) {
+      // Stick to the wall
+      if (nextPoint.dx < leftWall!.position.dx + leftWall!.width) {
+        nextPoint = Offset(
+            leftWall!.position.dx + leftWall!.width + player!.width / 2,
+            nextPoint.dy);
+      } else if (nextPoint.dx > rightWall!.position.dx) {
+        nextPoint = Offset(rightWall!.position.dx - player!.width / 2,
+            nextPoint.dy);
       }
     }
+
+    player!.position = nextPoint;
+    trajectoryLine?.updatePlayerPosition(player!.position);
+
+    if (_isOutOfBounds()) {
+      isGameOver = true;
+    }
+
+    // If there are more points, continue moving after a delay
+    if (trajectoryLine!.points.isNotEmpty) {
+      Future.delayed(Duration(milliseconds: 100), () {
+        movePlayerAlongTrajectory();
+      });
+    }
   }
+}
 
   bool _isCollidingWithWall(Offset endPoint) {
     return (endPoint.dx < leftWall!.position.dx + leftWall!.width ||
