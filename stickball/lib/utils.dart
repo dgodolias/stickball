@@ -44,7 +44,6 @@ Offset moveByPercentage(BuildContext context, Offset currentPosition, double wid
   );
 }
 
-// Helper functions from your .h files
 double createTrajectoryFunc(double theta, double v, double x_new, double x_start,
     double y_start, double ya, double yb) {
   double x = x_new - x_start;
@@ -73,3 +72,4 @@ double StartingVelocityX(double v, double theta) {
   }
   return v * cos(theta);
 }
+
