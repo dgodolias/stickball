@@ -25,8 +25,8 @@ class GameState extends ChangeNotifier {
     trajectoryLine = TrajectoryLine(player: player!, screenSize: screenSize!);
 
     // Initialize walls
-    leftWall = Wall(position: Offset(0, 0), width: screenSize!.width * 0.1, height: screenSize!.height);
-    rightWall = Wall(position: Offset(screenSize!.width - screenSize!.width * 0.1, 0), width: screenSize!.width * 0.1, height: screenSize!.height);
+    leftWall = Wall(position: Offset(0, 0), width: 10, height: screenSize!.height);
+    rightWall = Wall(position: Offset(screenSize!.width - 10, 0), width: 10, height: screenSize!.height);
 
     notifyListeners();
   }
@@ -50,38 +50,38 @@ class GameState extends ChangeNotifier {
   }
 
   void movePlayerAlongTrajectory() {
-  if (trajectoryLine?.points.isNotEmpty ?? false) {
-    // Move to the next point in the trajectory
-    Offset nextPoint = trajectoryLine!.points.removeAt(0);
+    Offset? endPoint = trajectoryLine?.getEndPoint();
+    if (endPoint != null && player != null) {
+      // Check for collision with walls
+      if (_isCollidingWithWall(endPoint)) {
+        // Stick to the wall
+        if (endPoint.dx < leftWall!.position.dx + leftWall!.width + player!.width / 2) {
+          endPoint = Offset(leftWall!.position.dx + leftWall!.width + player!.width / 2, endPoint.dy);
+        } else if (endPoint.dx > rightWall!.position.dx - player!.width / 2) {
+          endPoint = Offset(rightWall!.position.dx - player!.width / 2, endPoint.dy);
+        }
+      }
 
-    // Check for collision with walls
-    if (_isCollidingWithWall(nextPoint)) {
-      // Stick to the wall
-      if (nextPoint.dx < leftWall!.position.dx + leftWall!.width) {
-        nextPoint = Offset(
-            leftWall!.position.dx + leftWall!.width + player!.width / 2,
-            nextPoint.dy);
-      } else if (nextPoint.dx > rightWall!.position.dx) {
-        nextPoint = Offset(rightWall!.position.dx - player!.width / 2,
-            nextPoint.dy);
+      // Ensure the player does not go out of bounds
+      if (endPoint.dx < player!.width / 2) {
+        endPoint = Offset(player!.width / 2, endPoint.dy);
+      } else if (endPoint.dx > screenSize!.width - player!.width / 2) {
+        endPoint = Offset(screenSize!.width - player!.width / 2, endPoint.dy);
+      }
+
+      if (endPoint.dy < player!.height / 2) {
+        endPoint = Offset(endPoint.dx, player!.height / 2);
+      } else if (endPoint.dy > screenSize!.height - player!.height / 2) {
+        endPoint = Offset(endPoint.dx, screenSize!.height - player!.height / 2);
+      }
+
+      player!.position = endPoint;
+      trajectoryLine?.updatePlayerPosition(player!.position);
+      if (_isOutOfBounds()) {
+        isGameOver = true;
       }
     }
-
-    player!.position = nextPoint;
-    trajectoryLine?.updatePlayerPosition(player!.position);
-
-    if (_isOutOfBounds()) {
-      isGameOver = true;
-    }
-
-    // If there are more points, continue moving after a delay
-    if (trajectoryLine!.points.isNotEmpty) {
-      Future.delayed(Duration(milliseconds: 100), () {
-        movePlayerAlongTrajectory();
-      });
-    }
   }
-}
 
   bool _isCollidingWithWall(Offset endPoint) {
     return (endPoint.dx < leftWall!.position.dx + leftWall!.width ||
@@ -156,8 +156,10 @@ class GamePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (gameState.player != null) {
       gameState.player!.draw(canvas);
+
+      // Draw trajectory
       gameState.trajectoryLine?.draw(canvas);
-      
+
       // Draw walls
       gameState.leftWall?.draw(canvas);
       gameState.rightWall?.draw(canvas);
