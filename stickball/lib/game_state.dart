@@ -49,37 +49,66 @@ class GameState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void movePlayerAlongTrajectory() {
-    Offset? endPoint = trajectoryLine?.getEndPoint();
-    if (endPoint != null && player != null) {
-      // Check for collision with walls
-      if (_isCollidingWithWall(endPoint)) {
+  void movePlayerAlongTrajectory() async {
+    if (trajectoryLine == null || player == null) return;
+
+    double theta = starting_trajectory_angle(
+      player!.position.dx,
+      player!.position.dy,
+      trajectoryLine!.currentTouchPoint!.dx,
+      trajectoryLine!.currentTouchPoint!.dy,
+    );
+
+    double v = createVelocity(
+      player!.position.dx,
+      player!.position.dy,
+      trajectoryLine!.currentTouchPoint!.dx,
+      trajectoryLine!.currentTouchPoint!.dy,
+    );
+
+    double t = 0;
+    double dt = 0.1; // Time step, adjust as needed
+
+    while (true) {
+      t += dt;
+      double x = player!.position.dx + StartingVelocityX(v, theta) * t;
+      double y = player!.position.dy - createTrajectoryFunc(theta, v, x, player!.position.dx, player!.position.dy, 0, 0);
+
+      Offset newPosition = Offset(x, y);
+
+      if (_isCollidingWithWall(newPosition)) {
         // Stick to the wall
-        if (endPoint.dx < leftWall!.position.dx + leftWall!.width + player!.width / 2) {
-          endPoint = Offset(leftWall!.position.dx + leftWall!.width + player!.width / 2, endPoint.dy);
-        } else if (endPoint.dx > rightWall!.position.dx - player!.width / 2) {
-          endPoint = Offset(rightWall!.position.dx - player!.width / 2, endPoint.dy);
+        if (newPosition.dx < leftWall!.position.dx + leftWall!.width + player!.width / 2) {
+          newPosition = Offset(leftWall!.position.dx + leftWall!.width + player!.width / 2, newPosition.dy);
+        } else if (newPosition.dx > rightWall!.position.dx - player!.width / 2) {
+          newPosition = Offset(rightWall!.position.dx - player!.width / 2, newPosition.dy);
         }
       }
 
       // Ensure the player does not go out of bounds
-      if (endPoint.dx < player!.width / 2) {
-        endPoint = Offset(player!.width / 2, endPoint.dy);
-      } else if (endPoint.dx > screenSize!.width - player!.width / 2) {
-        endPoint = Offset(screenSize!.width - player!.width / 2, endPoint.dy);
+      if (newPosition.dx < player!.width / 2) {
+        newPosition = Offset(player!.width / 2, newPosition.dy);
+      } else if (newPosition.dx > screenSize!.width - player!.width / 2) {
+        newPosition = Offset(screenSize!.width - player!.width / 2, newPosition.dy);
       }
 
-      if (endPoint.dy < player!.height / 2) {
-        endPoint = Offset(endPoint.dx, player!.height / 2);
-      } else if (endPoint.dy > screenSize!.height - player!.height / 2) {
-        endPoint = Offset(endPoint.dx, screenSize!.height - player!.height / 2);
+      if (newPosition.dy < player!.height / 2) {
+        newPosition = Offset(newPosition.dx, player!.height / 2);
+      } else if (newPosition.dy > screenSize!.height - player!.height / 2) {
+        newPosition = Offset(newPosition.dx, screenSize!.height - player!.height / 2);
       }
 
-      player!.position = endPoint;
+      player!.position = newPosition;
       trajectoryLine?.updatePlayerPosition(player!.position);
-      if (_isOutOfBounds()) {
-        isGameOver = true;
-      }
+      notifyListeners();
+      await Future.delayed(Duration(milliseconds: 50)); // Adjust the delay as needed
+
+      // Break the loop if the player reaches the end of the trajectory
+      if (t > 10) break; // Adjust the condition as needed
+    }
+
+    if (_isOutOfBounds()) {
+      isGameOver = true;
     }
   }
 
