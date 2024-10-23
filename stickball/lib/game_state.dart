@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:stickball/utils.dart';
 import 'package:stickball/models/trajectory_line.dart';
 import 'package:stickball/models/player.dart';
@@ -58,5 +59,100 @@ class GameState extends ChangeNotifier {
         player!.position.dx > screenSize!.width - player!.width ||
         player!.position.dy < 0 ||
         player!.position.dy > screenSize!.height - player!.height;
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: GameScreen(),
+    );
+  }
+}
+
+class GameScreen extends StatelessWidget {
+  const GameScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+
+    if (gameState.player?.position == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setScreenDimensions(context); // Call the function to set screen dimensions
+        gameState.initializeGame(context);
+      });
+    }
+
+    return Scaffold(
+      body: gameState.isGameOver ? GameOverScreen() : PlayScreen(),
+    );
+  }
+}
+
+class PlayScreen extends StatelessWidget {
+  const PlayScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final gameState = Provider.of<GameState>(context);
+
+    return GestureDetector(
+      onPanStart: (details) => gameState.startDrag(details.localPosition),
+      onPanUpdate: (details) => gameState.updateDrag(details.localPosition),
+      onPanEnd: (_) => gameState.endDrag(),
+      child: CustomPaint(
+        painter: GamePainter(gameState),
+        child: Container(),
+      ),
+    );
+  }
+}
+
+class GamePainter extends CustomPainter {
+  final GameState gameState;
+
+  GamePainter(this.gameState);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (gameState.player != null) {
+      gameState.player!.draw(canvas);
+
+      // Draw trajectory
+      gameState.trajectoryLine?.draw(canvas);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class GameOverScreen extends StatelessWidget {
+  const GameOverScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Game Over',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            child: const Text('Click here to start again'),
+            onPressed: () {
+              Provider.of<GameState>(context, listen: false).initializeGame(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
